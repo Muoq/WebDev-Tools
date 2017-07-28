@@ -44,6 +44,42 @@ def create_data_file():
     tree = ET.ElementTree(data)
     tree.write(data_file_name)
 
+def console_command_handle(args):
+    #valid commands: -p, --path, --src, --dst
+    try:
+        if args[1] == "-p" or args[1] == "--path":
+            print("Press CTRL + C to cancel.")
+            src_path_str = input("Enter src path: ")
+            dest_path_str = input("Enter dest path: ")
+            if not src_path_str == "%%":
+                src_path.text = src_path_str
+            if not dest_path_str == "%%":
+                dest_path.text = dest_path_str
+        elif args[1] == "-src":
+            if len(args) < 3:
+                print("Error: You need to enter a path.")
+                quit()
+            elif len(args) > 3:
+                print("Error: Too many arguments.")
+                quit()
+            src_path.text = args[2]
+        elif args[1] == "-dst":
+            if len(args) < 3:
+                print("Error: You need to enter a path.")
+                quit()
+            elif len(args) > 3:
+                print("Error: Too many arguments.")
+                quit()
+            dest_path.text = args[2]
+        elif args[1] == "help":
+            pass
+        else:
+            print("Error: \"" + args[1] + "\" is not a valid chn command.")
+            quit()
+    except KeyboardInterrupt:
+        quit()
+
+    tree.write(data_file_name)
 
 try:
     tree = ET.parse(data_file_name)
@@ -61,24 +97,25 @@ actual_style_names = ["light_blue.css", "dark_blue.css", "dark_blue_orange.css"]
 current_style = actual_style_names[available_styles.index(get_current_style(dest_path.text + file_name.text))]
 
 console_args = sys.argv
-if (len(console_args) > 2):
-    print("You can only enter one command")
-    quit()
-elif(len(console_args) == 1):
+if console_args[1][0] == "-":
+    console_command_handle(console_args)
+elif len(console_args) == 2:
+
+    try:
+        style_arg = int(console_args[1])
+        new_style = actual_style_names[style_arg]
+    except (ValueError, TypeError):
+        style_arg = str(console_args[1])
+        if style_arg not in available_styles:
+            print("Please enter a valid style.")
+            quit()
+        new_style = actual_style_names[available_styles.index(str(style_arg))]
+
+    copyfile(dest_path.text + file_name.text, src_path.text + current_style)
+    copyfile(src_path.text + new_style, dest_path.text + file_name.text)
+elif len(console_args) == 1:
     print(current_style)
     quit()
 
-try:
-    style_arg = int(console_args[1])
-    new_style = actual_style_names[style_arg]
-except (ValueError, TypeError):
-    style_arg = str(console_args[1])
-    if style_arg not in available_styles:
-        print("Please enter a valid style.")
-        quit()
-    new_style = actual_style_names[available_styles.index(str(style_arg))]
-
-copyfile(dest_path.text + file_name.text, src_path.text + current_style)
-copyfile(src_path.text + new_style, dest_path.text + file_name.text)
 
 tree.write(data_file_name)
